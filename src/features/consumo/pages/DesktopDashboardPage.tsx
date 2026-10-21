@@ -292,7 +292,7 @@ export function DesktopDashboardPage({
             </div>
             <div className="mt-3">
               <span className="font-serif font-bold text-3xl text-[#181C1B]">
-                {totalReactivosCount || 6}
+                {totalReactivosCount}
               </span>
               <p className="font-sans text-xs text-[#655D52] mt-0.5">
                 Reactivos activos en inventario local
@@ -309,7 +309,7 @@ export function DesktopDashboardPage({
             </div>
             <div className="mt-3">
               <span className="font-serif font-bold text-3xl text-[#6A572B]">
-                {escasezCount || reactivoAlerts.length}
+                {escasezCount}
               </span>
               <p className="font-sans text-xs text-[#655D52] mt-0.5">
                 Reactivos requieren reposición
