@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { FlaskConical } from 'lucide-react'
 import { AppHeader, Navbar } from '@/components/layout'
 import { ReactivoCard } from '@/components/ui/ReactivoCard'
 import { Stepper } from '@/components/ui/Stepper'
@@ -77,12 +78,18 @@ export function PrestamosDetallePage() {
     return (
       <div className="min-h-screen w-full bg-[#FAF6F0] flex flex-col justify-between">
         <AppHeader />
-        <main className="w-full max-w-[412px] mx-auto px-6 pt-12 flex-1 text-center">
+        <main className="w-full max-w-[412px] mx-auto px-6 pt-16 flex-1 text-center flex flex-col items-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+            <FlaskConical className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="font-serif text-2xl font-bold text-text-main mb-2">
+            Selecciona un reactivo
+          </h2>
           <p className="font-sans text-sm text-[#655D52] mb-6">
-            No se ha seleccionado ningún reactivo o préstamo para gestionar.
+            Para solicitar un préstamo o registrar una devolución, primero debes elegir el reactivo en el catálogo.
           </p>
           <Button variant="default" onClick={() => navigate('/prestamos')}>
-            Ir al listado de préstamos
+            Ir al listado de reactivos
           </Button>
         </main>
         <Navbar activeId="prestamos" fixed />
