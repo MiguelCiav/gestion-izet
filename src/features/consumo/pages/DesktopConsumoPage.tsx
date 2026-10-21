@@ -19,7 +19,6 @@ import {
   registrarConsumoEnSupabase,
   evaluarCaducidad,
 } from '@/lib/izetService'
-import { DEFAULT_REACTIVOS } from '../data/mockData'
 import type {
   ConsumoFormValues,
   DesktopConsumoPageProps,
@@ -94,15 +93,15 @@ export function DesktopConsumoPage({
   const stateReactivo = (location.state as { reactivo?: Reactivo } | null)?.reactivo
 
   const [reactivos, setReactivos] = React.useState<Reactivo[]>(
-    propReactivos ?? DEFAULT_REACTIVOS,
+    propReactivos ?? [],
   )
-  const [selectedReactivo, setSelectedReactivo] = React.useState<Reactivo>(() => {
+  const [selectedReactivo, setSelectedReactivo] = React.useState<Reactivo | null>(() => {
     if (stateReactivo) return stateReactivo
     if (initialReactivoId && propReactivos) {
       const found = propReactivos.find((r) => r.id === initialReactivoId)
       if (found) return found
     }
-    return (propReactivos ?? DEFAULT_REACTIVOS)[0]
+    return (propReactivos ?? [])[0] ?? null
   })
 
   const [cantidad, setCantidad] = React.useState<number>(10)
@@ -118,14 +117,12 @@ export function DesktopConsumoPage({
     if (propReactivos) return
     const inv = await fetchInventarioLaboratorio(activeLab)
     const mapped = mapInventarioToConsumoReactivos(inv)
-    if (mapped.length > 0) {
-      setReactivos(mapped)
-      setSelectedReactivo((prev) => {
-        if (stateReactivo) return stateReactivo
-        const match = mapped.find((m) => m.id === prev?.id)
-        return match || mapped[0]
-      })
-    }
+    setReactivos(mapped)
+    setSelectedReactivo((prev) => {
+      if (stateReactivo) return stateReactivo
+      const match = mapped.find((m) => m.id === prev?.id)
+      return match || mapped[0] || null
+    })
   }, [activeLab, propReactivos, stateReactivo])
 
   React.useEffect(() => {
@@ -289,7 +286,7 @@ export function DesktopConsumoPage({
               variant="new"
               label="Nuevo consumo"
               onClick={() => {
-                setSelectedReactivo(reactivos[0] || DEFAULT_REACTIVOS[0])
+                setSelectedReactivo(reactivos[0] || null)
                 setCantidad(10)
                 setMotivo('')
                 setConfirmarVencido(false)

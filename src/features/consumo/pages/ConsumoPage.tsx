@@ -5,7 +5,6 @@ import { useAuth } from '@/features/auth/hooks'
 import { fetchInventarioLaboratorio, mapInventarioToConsumoReactivos } from '@/lib/izetService'
 import { ConsumoSearch } from '../components/ConsumoSearch'
 import { ReactivoList } from '../components/ReactivoList'
-import { DEFAULT_REACTIVOS } from '../data/mockData'
 import type { ConsumoPageProps, Reactivo } from '../types'
 
 export function ConsumoPage({
@@ -18,7 +17,7 @@ export function ConsumoPage({
   const { activeLab, user } = useAuth()
   const [searchTerm, setSearchTerm] = React.useState<string>('')
   const [reactivos, setReactivos] = React.useState<Reactivo[]>(
-    propReactivos ?? DEFAULT_REACTIVOS,
+    propReactivos ?? [],
   )
 
   React.useEffect(() => {
@@ -27,7 +26,7 @@ export function ConsumoPage({
       if (propReactivos) return
       const inv = await fetchInventarioLaboratorio(activeLab)
       const mapped = mapInventarioToConsumoReactivos(inv)
-      if (mounted && mapped.length > 0) {
+      if (mounted) {
         setReactivos(mapped)
       }
     }

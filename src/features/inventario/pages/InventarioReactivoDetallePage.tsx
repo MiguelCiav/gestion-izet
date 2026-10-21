@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { AppHeader, Navbar } from '@/components/layout'
 import { useAuth } from '@/features/auth/hooks'
-import { guardarReactivoEnSupabase, darBajaLogicaReactivo } from '@/lib/izetService'
+import { guardarReactivoEnSupabase, darBajaLogicaReactivo, eliminarReactivo } from '@/lib/izetService'
 import { ReactivoForm } from '../components'
 import type { ReactivoFormData, ReactivoItem } from '../types'
 
@@ -94,6 +94,24 @@ export function InventarioReactivoDetallePage() {
     navigate('/inventario/reactivos')
   }
 
+  const handleDelete = async () => {
+    const idToDelete = item?.reactivoId || item?.id
+    if (!idToDelete) return
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de que deseas eliminar permanentemente el reactivo "${item?.nombre}"? Esta acción eliminará su stock y registros asociados.`
+    )
+    if (!confirmDelete) return
+
+    setIsSubmitting(true)
+    const res = await eliminarReactivo(idToDelete, activeLab)
+    setIsSubmitting(false)
+    if (!res.success) {
+      setErrorMsg(res.error || 'Error al eliminar el reactivo')
+      return
+    }
+    navigate('/inventario/reactivos')
+  }
+
   const handleNavbarChange = (_id: string, navItem: { href?: string }) => {
     if (navItem.href) {
       navigate(navItem.href)
@@ -118,10 +136,11 @@ export function InventarioReactivoDetallePage() {
         <div className="w-full pb-6">
           <ReactivoForm
             initialData={initialFormData}
-            reactivoId={item?.reactivoId}
+            reactivoId={item?.reactivoId || item?.id}
             onCancel={handleBack}
             onSubmit={handleSubmit}
             onDeactivate={item?.reactivoId ? handleDeactivate : undefined}
+            onDelete={item ? handleDelete : undefined}
             isSubmitting={isSubmitting}
           />
         </div>

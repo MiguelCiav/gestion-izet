@@ -428,6 +428,31 @@ export async function darBajaLogicaReactivo(
 }
 
 /**
+ * Elimina un reactivo del inventario/catálogo (y su stock en el laboratorio actual).
+ */
+export async function eliminarReactivo(
+  reactivoId: string,
+  lab?: LabOption,
+): Promise<{ success: boolean; error?: string }> {
+  const labId = lab ? getLabId(lab) : null
+  const { data, error } = await (supabase.rpc as any)('eliminar_reactivo', {
+    p_reactivo_id: reactivoId,
+    p_laboratorio_id: labId,
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  const res = data as { success?: boolean; error?: string } | null
+  if (res && res.success === false) {
+    return { success: false, error: res.error || 'Error al eliminar el reactivo' }
+  }
+
+  return { success: true }
+}
+
+/**
  * Genera las alertas activas del Dashboard para el laboratorio seleccionado:
  * - HU07: Alertas de stock mínimo estrictamente 0 < stock_actual <= umbral_minimo (una única advertencia fija por reactivo)
  * - HU08: Alertas de vencimiento ("Próximo a Vencer" <= 30 días como warning, y "Vencido" < 0 días como danger)

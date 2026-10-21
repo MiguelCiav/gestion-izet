@@ -18,10 +18,6 @@ import {
   tieneAlertaStockMinimo,
   LABORATORIOS_INFO,
 } from '@/lib/izetService'
-import {
-  DEFAULT_REACTIVO_ALERTS,
-  DEFAULT_RECENT_CONSUMOS,
-} from '../data/mockData'
 import type {
   ConsumoReciente,
   DashboardAlert,
@@ -41,10 +37,10 @@ export function DesktopDashboardPage({
   const [selectedCategory, setSelectedCategory] = React.useState<'todos' | 'warning' | 'danger'>('todos')
 
   const [reactivoAlerts, setReactivoAlerts] = React.useState<DashboardAlert[]>(
-    propReactivoAlerts ?? DEFAULT_REACTIVO_ALERTS,
+    propReactivoAlerts ?? [],
   )
   const [recentConsumos, setRecentConsumos] = React.useState<ConsumoReciente[]>(
-    DEFAULT_RECENT_CONSUMOS,
+    [],
   )
   const [totalReactivosCount, setTotalReactivosCount] = React.useState<number>(0)
   const [escasezCount, setEscasezCount] = React.useState<number>(0)
@@ -59,7 +55,7 @@ export function DesktopDashboardPage({
 
       if (!mounted) return
 
-      if (inv.length > 0 && !propReactivoAlerts) {
+      if (!propReactivoAlerts) {
         const dynamicAlerts = construirAlertasReactivos(inv)
         setReactivoAlerts(dynamicAlerts)
         setTotalReactivosCount(inv.length)
@@ -70,9 +66,7 @@ export function DesktopDashboardPage({
         )
       }
 
-      if (bitacora.consumosRecientes.length > 0) {
-        setRecentConsumos(bitacora.consumosRecientes)
-      }
+      setRecentConsumos(bitacora.consumosRecientes)
     }
 
     void loadDashboardData()

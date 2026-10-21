@@ -10,7 +10,6 @@ import {
   mapInventarioToPrestamoReactivos,
 } from '@/lib/izetService'
 import { PrestamosList } from '../components'
-import { MOCK_PRESTAMO_REACTIVOS } from '../data'
 import type {
   PrestamoReactivo,
   PrestamoItem,
@@ -29,9 +28,7 @@ export function PrestamosPage() {
 
   const [activeTab, setActiveTab] = React.useState<'solicitar' | 'devolver'>('solicitar')
   const [searchQuery, setSearchQuery] = React.useState<string>('')
-  const [reactivos, setReactivos] = React.useState<PrestamoReactivo[]>(
-    MOCK_PRESTAMO_REACTIVOS,
-  )
+  const [reactivos, setReactivos] = React.useState<PrestamoReactivo[]>([])
   const [prestamosActivos, setPrestamosActivos] = React.useState<PrestamoItem[]>([])
   const [feedbackMessage, setFeedbackMessage] = React.useState<string | null>(
     locationState?.successMessage ?? null,
@@ -46,9 +43,7 @@ export function PrestamosPage() {
       ])
       if (!isMounted) return
       const mapped = mapInventarioToPrestamoReactivos(inv)
-      if (mapped.length > 0) {
-        setReactivos(mapped)
-      }
+      setReactivos(mapped)
       setPrestamosActivos(prestamos)
     }
     void load()

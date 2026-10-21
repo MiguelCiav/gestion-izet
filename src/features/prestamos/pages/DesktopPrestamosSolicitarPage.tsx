@@ -21,7 +21,7 @@ import {
   registrarPrestamoEnSupabase,
   LABORATORIOS_INFO,
 } from '@/lib/izetService'
-import { MOCK_PRESTAMO_REACTIVOS, DEFAULT_PRESTAMO_REACTIVO } from '../data'
+import { DEFAULT_PRESTAMO_REACTIVO } from '../data'
 import type {
   PrestamoReactivo,
   ModalidadPrestamo,
@@ -92,13 +92,11 @@ export function DesktopPrestamosSolicitarPage({
   const locationState = location.state as PrestamosDetalleLocationState | null
 
   // Reactivos disponibles cargados de Supabase
-  const [reactivosList, setReactivosList] = React.useState<PrestamoReactivo[]>(
-    MOCK_PRESTAMO_REACTIVOS,
-  )
+  const [reactivosList, setReactivosList] = React.useState<PrestamoReactivo[]>([])
 
   // Reactivo seleccionado
   const [selectedReactivo, setSelectedReactivo] = React.useState<PrestamoReactivo>(
-    initialReactivo ?? locationState?.reactivo ?? DEFAULT_PRESTAMO_REACTIVO,
+    initialReactivo ?? locationState?.reactivo ?? (DEFAULT_PRESTAMO_REACTIVO as unknown as PrestamoReactivo),
   )
 
   // Búsqueda de reactivos en la columna izquierda
@@ -132,15 +130,13 @@ export function DesktopPrestamosSolicitarPage({
   const loadReactivos = React.useCallback(async () => {
     const inv = await fetchInventarioLaboratorio(activeLab)
     const mapped = mapInventarioToPrestamoReactivos(inv)
-    if (mapped.length > 0) {
-      setReactivosList(mapped)
-      if (!initialReactivo && !locationState?.reactivo) {
-        setSelectedReactivo(mapped[0])
-      } else {
-        const currentId = (initialReactivo ?? locationState?.reactivo)?.id
-        const found = mapped.find((r) => r.id === currentId)
-        if (found) setSelectedReactivo(found)
-      }
+    setReactivosList(mapped)
+    if (!initialReactivo && !locationState?.reactivo) {
+      setSelectedReactivo(mapped[0] || (null as unknown as PrestamoReactivo))
+    } else {
+      const currentId = (initialReactivo ?? locationState?.reactivo)?.id
+      const found = mapped.find((r) => r.id === currentId)
+      setSelectedReactivo(found || mapped[0] || (null as unknown as PrestamoReactivo))
     }
   }, [activeLab, initialReactivo, locationState?.reactivo])
 

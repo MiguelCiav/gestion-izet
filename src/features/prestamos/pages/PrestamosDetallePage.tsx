@@ -13,7 +13,6 @@ import {
   registrarDevolucionPrestamoEnSupabase,
   LABORATORIOS_INFO,
 } from '@/lib/izetService'
-import { DEFAULT_PRESTAMO_REACTIVO } from '../data'
 import type {
   PrestamoReactivo,
   ModalidadPrestamo,
@@ -41,12 +40,13 @@ export function PrestamosDetallePage() {
 
   const mode = locationState?.mode ?? 'solicitar'
   const prestamoActivo = locationState?.prestamoActivo
-  const reactivo: PrestamoReactivo = locationState?.reactivo ?? DEFAULT_PRESTAMO_REACTIVO
-
-  const maxStockNum =
-    typeof reactivo.stock === 'number'
-      ? reactivo.stock
-      : Number.parseFloat(String(reactivo.stock)) || 100
+  const reactivo: PrestamoReactivo | undefined = locationState?.reactivo || (prestamoActivo ? {
+    id: prestamoActivo.reactivoId || prestamoActivo.id,
+    nombre: prestamoActivo.material,
+    codigo: prestamoActivo.codigoReactivo || 'S/C',
+    stock: prestamoActivo.cantidad,
+    unidad: prestamoActivo.unidad,
+  } : undefined)
 
   // Estado del contador Stepper
   const [cantidad, setCantidad] = React.useState<number>(
@@ -72,6 +72,28 @@ export function PrestamosDetallePage() {
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false)
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
   const [feedbackSuccess, setFeedbackSuccess] = React.useState<string | null>(null)
+
+  if (!reactivo) {
+    return (
+      <div className="min-h-screen w-full bg-[#FAF6F0] flex flex-col justify-between">
+        <AppHeader />
+        <main className="w-full max-w-[412px] mx-auto px-6 pt-12 flex-1 text-center">
+          <p className="font-sans text-sm text-[#655D52] mb-6">
+            No se ha seleccionado ningún reactivo o préstamo para gestionar.
+          </p>
+          <Button variant="default" onClick={() => navigate('/prestamos')}>
+            Ir al listado de préstamos
+          </Button>
+        </main>
+        <Navbar activeId="prestamos" fixed />
+      </div>
+    )
+  }
+
+  const maxStockNum =
+    typeof reactivo.stock === 'number'
+      ? reactivo.stock
+      : Number.parseFloat(String(reactivo.stock)) || 100
 
   const handleBack = () => {
     navigate('/prestamos')

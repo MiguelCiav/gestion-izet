@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Trash2 } from 'lucide-react'
 import { RomboBadge, type RomboValues } from '@/components/ui/RomboBadge'
 import { InputField } from '@/components/ui/InputField'
 import { RadioButton } from '@/components/ui/RadioButton'
@@ -16,6 +17,7 @@ export interface ReactivoFormProps {
   onSubmit?: (data: ReactivoFormData) => void
   onCancel?: () => void
   onDeactivate?: () => void
+  onDelete?: () => void
   isSubmitting?: boolean
   submitLabel?: string
   className?: string
@@ -52,6 +54,7 @@ export function ReactivoForm({
   onSubmit,
   onCancel,
   onDeactivate,
+  onDelete,
   isSubmitting = false,
   submitLabel = 'Guardar',
   className,
@@ -500,6 +503,18 @@ export function ReactivoForm({
             {isSubmitting ? 'Guardando...' : submitLabel}
           </Button>
         </div>
+
+        {onDelete && reactivoId && (
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={isSubmitting}
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-sans font-semibold text-white bg-[#B83230] hover:bg-[#9E2A28] transition-colors cursor-pointer flex items-center justify-center gap-2 mt-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Eliminar reactivo permanentemente
+          </button>
+        )}
 
         {onDeactivate && reactivoId && (
           <button

@@ -7,7 +7,6 @@ import { ReactivoCard } from '@/components/ui/ReactivoCard'
 import { Stepper, StepIndicator, type StepItem } from '@/components/ui/Stepper'
 import { useAuth } from '@/features/auth/hooks'
 import { registrarConsumoEnSupabase } from '@/lib/izetService'
-import { DEFAULT_REACTIVOS } from '../data/mockData'
 import type {
   ConsumoFormValues,
   DesktopConsumoDetallePageProps,
@@ -94,8 +93,8 @@ export function DesktopConsumoDetallePage({
   const { activeLab, user } = useAuth()
 
   const locationState = location.state as { reactivo?: Reactivo } | null
-  const currentReactivo: Reactivo =
-    propReactivo || locationState?.reactivo || DEFAULT_REACTIVOS[0]
+  const currentReactivo: Reactivo | undefined =
+    propReactivo || locationState?.reactivo
 
   const [cantidad, setCantidad] = React.useState<number>(10)
   const [registrarOtro, setRegistrarOtro] = React.useState<boolean>(false)
@@ -107,6 +106,21 @@ export function DesktopConsumoDetallePage({
     } else {
       navigate(`/${id}`)
     }
+  }
+
+  if (!currentReactivo) {
+    return (
+      <DesktopLayout activeNavId="consumo" onNavChange={handleNavChange}>
+        <div className="w-full max-w-[800px] mx-auto py-16 text-center space-y-4">
+          <p className="font-sans text-base text-[#655D52]">
+            No se ha seleccionado ningún reactivo para registrar consumo.
+          </p>
+          <Button variant="default" onClick={() => navigate('/consumo')}>
+            Volver a la selección de reactivo
+          </Button>
+        </div>
+      </DesktopLayout>
+    )
   }
 
   const handleBack = (): void => {

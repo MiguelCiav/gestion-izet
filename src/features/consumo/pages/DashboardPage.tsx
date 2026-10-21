@@ -7,7 +7,6 @@ import { fetchInventarioLaboratorio, construirAlertasReactivos } from '@/lib/ize
 import { DashboardAlerts } from '../components/DashboardAlerts'
 import {
   DEFAULT_EQUIPO_ALERTS,
-  DEFAULT_REACTIVO_ALERTS,
 } from '../data/mockData'
 import type { DashboardAlert, DashboardPageProps } from '../types'
 
@@ -20,7 +19,7 @@ export function DashboardPage({
   const navigate = useNavigate()
   const { activeLab, user } = useAuth()
   const [reactivoAlerts, setReactivoAlerts] = React.useState<DashboardAlert[]>(
-    propReactivoAlerts ?? DEFAULT_REACTIVO_ALERTS,
+    propReactivoAlerts ?? [],
   )
 
   React.useEffect(() => {
@@ -28,7 +27,7 @@ export function DashboardPage({
     async function load() {
       if (propReactivoAlerts) return
       const inv = await fetchInventarioLaboratorio(activeLab)
-      if (mounted && inv.length > 0) {
+      if (mounted) {
         setReactivoAlerts(construirAlertasReactivos(inv))
       }
     }

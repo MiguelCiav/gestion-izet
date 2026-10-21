@@ -16,7 +16,6 @@ import {
   fetchPrestamosLaboratorio,
   registrarDevolucionPrestamoEnSupabase,
 } from '@/lib/izetService'
-import { MOCK_PRESTAMOS_TABLA } from '../data'
 import type { PrestamoItem, PrestamoEstado, PrestamosListLocationState } from '../types'
 
 export interface DesktopPrestamosPageProps {
@@ -106,7 +105,7 @@ export function DesktopPrestamosPage({
 
   // Conjunto de datos de préstamos desde Supabase
   const [prestamos, setPrestamos] = React.useState<PrestamoItem[]>(
-    initialData ?? MOCK_PRESTAMOS_TABLA,
+    initialData ?? [],
   )
 
   // Estado de búsqueda y filtros (HU10.1: solicitante, reactivo, fecha de entrega y estado)
@@ -125,11 +124,7 @@ export function DesktopPrestamosPage({
   const loadPrestamos = React.useCallback(async () => {
     if (initialData) return
     const rows = await fetchPrestamosLaboratorio(activeLab)
-    if (rows.length > 0) {
-      setPrestamos(rows)
-    } else {
-      setPrestamos([])
-    }
+    setPrestamos(rows)
   }, [activeLab, initialData])
 
   React.useEffect(() => {

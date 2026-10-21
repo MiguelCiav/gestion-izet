@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AppHeader, Navbar } from '@/components/layout'
+import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/features/auth/hooks'
 import { registrarConsumoEnSupabase } from '@/lib/izetService'
 import { ConsumoForm } from '../components/ConsumoForm'
-import { DEFAULT_REACTIVOS } from '../data/mockData'
 import type { ConsumoDetallePageProps, ConsumoFormValues, Reactivo } from '../types'
 
 export function ConsumoDetallePage({
@@ -19,8 +19,25 @@ export function ConsumoDetallePage({
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   const locationState = location.state as { reactivo?: Reactivo } | null
-  const currentReactivo: Reactivo =
-    propReactivo || locationState?.reactivo || DEFAULT_REACTIVOS[0]
+  const currentReactivo: Reactivo | undefined =
+    propReactivo || locationState?.reactivo
+
+  if (!currentReactivo) {
+    return (
+      <div className="min-h-screen w-full bg-[#FAF6F0] flex flex-col justify-between">
+        <AppHeader />
+        <main className="w-full max-w-[412px] mx-auto px-6 pt-12 flex-1 text-center">
+          <p className="font-sans text-sm text-[#655D52] mb-6">
+            No se ha seleccionado ningún reactivo para registrar consumo.
+          </p>
+          <Button variant="default" onClick={() => navigate('/consumo')}>
+            Ir al inventario de reactivos
+          </Button>
+        </main>
+        <Navbar activeId="consumo" fixed />
+      </div>
+    )
+  }
 
   const handleBack = () => {
     if (onBack) {

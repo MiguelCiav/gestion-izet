@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Trash2 } from 'lucide-react'
 import {
   DesktopLayout,
   DesktopTable,
@@ -15,12 +16,12 @@ import {
   fetchInventarioLaboratorio,
   guardarReactivoEnSupabase,
   darBajaLogicaReactivo,
+  eliminarReactivo,
   evaluarCaducidad,
   tieneAlertaStockMinimo,
   formatDateDisplay,
 } from '@/lib/izetService'
 import { ReactivoForm } from '../components/ReactivoForm'
-import { MOCK_REACTIVOS } from '../data/mockReactivos'
 import type { ReactivoItem, ReactivoFormData } from '../types'
 import { cn } from '@/lib/utils'
 
@@ -48,7 +49,7 @@ export function DesktopInventarioPage({
   const { activeLab, user } = useAuth()
 
   const [reactivos, setReactivos] = React.useState<ReactivoItem[]>(
-    initialReactivos ?? MOCK_REACTIVOS,
+    initialReactivos ?? [],
   )
   const [isLoading, setIsLoading] = React.useState<boolean>(!initialReactivos)
   const [isSaving, setIsSaving] = React.useState<boolean>(false)
@@ -67,9 +68,7 @@ export function DesktopInventarioPage({
     if (initialReactivos) return
     setIsLoading(true)
     const items = await fetchInventarioLaboratorio(activeLab)
-    if (items.length > 0) {
-      setReactivos(items)
-    }
+    setReactivos(items)
     setIsLoading(false)
   }, [activeLab, initialReactivos])
 
@@ -202,6 +201,34 @@ export function DesktopInventarioPage({
       setFeedbackMessage(`Reactivo "${selectedReactivo.nombre}" dado de baja lógica del catálogo.`)
       setTimeout(() => setFeedbackMessage(null), 3500)
       handleCloseDrawers()
+    }
+  }
+
+  const handleDeleteSelected = async (itemToDelete?: ReactivoItem) => {
+    const target = itemToDelete || selectedReactivo
+    if (!target) return
+    const idToDelete = target.reactivoId || target.id
+    if (!idToDelete) return
+
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de que deseas eliminar permanentemente el reactivo "${target.nombre}" (${target.codigo})? Esta acción eliminará su stock y registros asociados.`
+    )
+    if (!confirmDelete) return
+
+    setIsSaving(true)
+    const result = await eliminarReactivo(idToDelete, activeLab)
+    setIsSaving(false)
+
+    if (result.success) {
+      await loadInventario()
+      setFeedbackMessage(`Reactivo "${target.nombre}" eliminado exitosamente.`)
+      setTimeout(() => setFeedbackMessage(null), 3500)
+      if (selectedReactivo?.id === target.id) {
+        handleCloseDrawers()
+      }
+    } else {
+      setFeedbackMessage(`Error al eliminar: ${result.error || 'No se pudo eliminar el reactivo'}`)
+      setTimeout(() => setFeedbackMessage(null), 4000)
     }
   }
 
@@ -389,13 +416,27 @@ export function DesktopInventarioPage({
     {
       key: 'acciones',
       header: 'Acciones',
-      width: '7%',
+      width: '9%',
       align: 'center',
       render: (row) => (
-        <DesktopTableActionButton
-          label={`Ver detalle de ${row.nombre}`}
-          onClick={() => handleOpenDetail(row)}
-        />
+        <div className="flex items-center justify-center gap-1.5">
+          <DesktopTableActionButton
+            label={`Ver detalle de ${row.nombre}`}
+            onClick={() => handleOpenDetail(row)}
+          />
+          <button
+            type="button"
+            title={`Eliminar ${row.nombre}`}
+            aria-label={`Eliminar reactivo ${row.nombre}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              void handleDeleteSelected(row)
+            }}
+            className="p-1.5 text-[#B83230] hover:bg-[#B83230]/10 rounded-lg transition-colors cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       ),
     },
   ]
@@ -654,6 +695,7 @@ export function DesktopInventarioPage({
                 onCancel={handleCloseDrawers}
                 onSubmit={handleSaveDetail}
                 onDeactivate={handleDeactivateSelected}
+                onDelete={() => handleDeleteSelected()}
                 isSubmitting={isSaving}
                 submitLabel="Guardar"
               />

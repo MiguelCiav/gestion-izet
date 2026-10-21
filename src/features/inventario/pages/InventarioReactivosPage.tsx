@@ -6,7 +6,6 @@ import { FloatingButton } from '@/components/ui/FloatingButton'
 import { useAuth } from '@/features/auth/hooks'
 import { fetchInventarioLaboratorio, evaluarCaducidad, tieneAlertaStockMinimo } from '@/lib/izetService'
 import { ReactivosList } from '../components'
-import { MOCK_REACTIVOS } from '../data/mockReactivos'
 import type { ReactivoItem } from '../types'
 import { cn } from '@/lib/utils'
 
@@ -14,7 +13,7 @@ export function InventarioReactivosPage() {
   const navigate = useNavigate()
   const { activeLab } = useAuth()
   const [searchQuery, setSearchQuery] = React.useState<string>('')
-  const [reactivos, setReactivos] = React.useState<ReactivoItem[]>(MOCK_REACTIVOS)
+  const [reactivos, setReactivos] = React.useState<ReactivoItem[]>([])
   const [filterMode, setFilterMode] = React.useState<'todos' | 'bajo_stock' | 'vencimiento'>('todos')
   const [showFilters, setShowFilters] = React.useState(false)
 
@@ -22,7 +21,7 @@ export function InventarioReactivosPage() {
     let mounted = true
     async function load() {
       const items = await fetchInventarioLaboratorio(activeLab)
-      if (mounted && items.length > 0) {
+      if (mounted) {
         setReactivos(items)
       }
     }

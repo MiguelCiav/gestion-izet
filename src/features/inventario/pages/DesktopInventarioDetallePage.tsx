@@ -48,20 +48,20 @@ export interface DesktopInventarioDetallePageProps {
 }
 
 const DEFAULT_REACTIVO_DETALLE: ReactivoItem = {
-  id: 'rc-001',
-  nombre: 'Reactivo Name',
-  codigo: 'XX-123',
-  stock: '500ml',
+  id: '',
+  nombre: '',
+  codigo: '',
+  stock: 0,
   unidad: 'ml',
   umbral: 50,
-  fechaVencimiento: '12/2026',
-  ubicacion: 'Estante 3',
+  fechaVencimiento: '',
+  ubicacion: '',
   usoCompartido: false,
   rombo: {
-    health: 3,
+    health: 0,
     flammability: 0,
-    reactivity: 1,
-    special: 'COR',
+    reactivity: 0,
+    special: '',
   },
 }
 
