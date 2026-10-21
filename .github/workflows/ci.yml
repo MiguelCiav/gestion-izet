@@ -1,0 +1,37 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Lint, Typecheck & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 1. Linter (Sintaxis)
+      - name: 1. Linter (Sintaxis)
+        run: npm run lint
+
+      # 2. Typecheck (tsc)
+      - name: 2. Typecheck (tsc)
+        run: npm run typecheck
+
+      # 3. Build (Vite)
+      - name: 3. Build (Vite)
+        run: npm run build
