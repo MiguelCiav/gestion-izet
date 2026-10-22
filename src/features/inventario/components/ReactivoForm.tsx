@@ -5,8 +5,9 @@ import { InputField } from '@/components/ui/InputField'
 import { RadioButton } from '@/components/ui/RadioButton'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { Button } from '@/components/ui/Button'
-import { verificarDisponibilidadCodigo } from '@/lib/izetService'
-import type { ReactivoFormData } from '../types'
+import { verificarDisponibilidadCodigo, fetchUbicacionesLaboratorio } from '@/lib/izetService'
+import { useAuth } from '@/features/auth/hooks'
+import type { ReactivoFormData, UbicacionItem } from '../types'
 import { cn } from '@/lib/utils'
 
 const ENTIDADES_FISCALIZADORAS = ['CICPC'] as const
@@ -59,6 +60,19 @@ export function ReactivoForm({
   submitLabel = 'Guardar',
   className,
 }: ReactivoFormProps) {
+  const { activeLab } = useAuth()
+  const [ubicaciones, setUbicaciones] = React.useState<UbicacionItem[]>([])
+
+  React.useEffect(() => {
+    let active = true
+    void fetchUbicacionesLaboratorio(activeLab).then((list) => {
+      if (active) setUbicaciones(list)
+    })
+    return () => {
+      active = false
+    }
+  }, [activeLab])
+
   const [formData, setFormData] = React.useState<ReactivoFormData>(() => ({
     ...DEFAULT_FORM_DATA,
     ...initialData,
@@ -294,8 +308,8 @@ export function ReactivoForm({
           )}
         </div>
 
-        {/* Fórmula Química y Clasificación de Riesgo (HU02.2) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Fórmula Química (HU02.2) */}
+        <div>
           <InputField
             id="reactivo-formula"
             name="formulaQuimica"
@@ -304,15 +318,6 @@ export function ReactivoForm({
             value={formData.formulaQuimica || ''}
             onChange={handleChange}
             required
-            disabled={isSubmitting}
-          />
-          <InputField
-            id="reactivo-clasificacion"
-            name="clasificacionRiesgo"
-            label="Clasificación de riesgo (opcional)"
-            placeholder="Ej. Corrosivo / Inflamable"
-            value={formData.clasificacionRiesgo || ''}
-            onChange={handleChange}
             disabled={isSubmitting}
           />
         </div>
@@ -343,7 +348,7 @@ export function ReactivoForm({
               value={formData.unidadMedida || 'ml'}
               onChange={handleChange}
               disabled={isSubmitting}
-              className="h-12 w-full rounded-input border border-border bg-white px-3 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary"
+              className="h-11 w-full rounded-input border border-[#4A4E4A] bg-white px-3 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary hover:border-primary"
             >
               <option value="ml">ml</option>
               <option value="L">L</option>
@@ -370,22 +375,43 @@ export function ReactivoForm({
           <InputField
             id="reactivo-vencimiento"
             name="fechaVencimiento"
+            type="date"
+            variant="date"
             label="Fecha de vencimiento"
-            placeholder="AAAA-MM-DD o MM/AAAA"
             value={formData.fechaVencimiento}
             onChange={handleChange}
             disabled={isSubmitting}
           />
 
-          <InputField
-            id="reactivo-ubicacion"
-            name="ubicacion"
-            label="Ubicación física (opcional)"
-            placeholder="Ej. Gabinete Ácidos 1 - Estante A"
-            value={formData.ubicacion}
-            onChange={handleChange}
-            disabled={isSubmitting}
-          />
+          <div>
+            <label
+              htmlFor="reactivo-ubicacion"
+              className="block text-sm font-medium text-text-main mb-1.5"
+            >
+              Ubicación física
+            </label>
+            <select
+              id="reactivo-ubicacion"
+              name="ubicacion"
+              value={formData.ubicacion}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="h-11 w-full rounded-input border border-[#4A4E4A] bg-white px-3.5 py-2 text-sm text-text-main shadow-sm focus:outline-none focus:ring-2 focus:ring-primary hover:border-primary"
+            >
+              <option value="">Seleccione una ubicación...</option>
+              {ubicaciones.map((u) => (
+                <option key={u.id} value={u.nombre}>
+                  {u.nombre}
+                </option>
+              ))}
+              {formData.ubicacion &&
+                !ubicaciones.some((u) => u.nombre === formData.ubicacion) && (
+                  <option value={formData.ubicacion}>
+                    {formData.ubicacion} (Personalizada)
+                  </option>
+                )}
+            </select>
+          </div>
         </div>
 
         {/* Último precio adquirido y Moneda USD/VES (HU02.5 y HU04.3) */}

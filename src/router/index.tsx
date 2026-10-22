@@ -47,6 +47,7 @@ import {
   DesktopPrestamosPage,
   DesktopPrestamosSolicitarPage,
 } from '@/features/prestamos'
+import { DesktopAdminPage } from '@/features/admin/pages/DesktopAdminPage'
 
 export const router = createBrowserRouter([
   // 1. Ruta Raíz
@@ -247,7 +248,21 @@ export const router = createBrowserRouter([
     ),
   },
 
-  // 8. Rutas Alias Desktop
+  // 8. Módulo de Administración (Solo Administradores)
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute adminOnly>
+        <DesktopAdminPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/desktop/admin',
+    element: <Navigate to="/admin" replace />,
+  },
+
+  // 9. Rutas Alias Desktop
   {
     path: '/desktop/login',
     element: <Navigate to="/login" replace />,

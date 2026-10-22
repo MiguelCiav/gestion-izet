@@ -687,7 +687,12 @@ export function DesktopPrestamosSolicitarPage({
                             type="date"
                             value={fechaSolicitud}
                             onChange={(e) => setFechaSolicitud(e.target.value)}
-                            className="h-11 w-full rounded-input border border-[#655D52]/40 bg-white px-3.5 text-sm text-[#181C1B] focus:outline-none focus:ring-2 focus:ring-primary"
+                            onClick={(e) => {
+                              try {
+                                e.currentTarget.showPicker?.()
+                              } catch {}
+                            }}
+                            className="h-11 w-full rounded-input border border-[#655D52]/40 bg-white px-3.5 text-sm text-[#181C1B] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                           />
                         </div>
 
@@ -703,7 +708,12 @@ export function DesktopPrestamosSolicitarPage({
                             type="date"
                             value={fechaLimite}
                             onChange={(e) => setFechaLimite(e.target.value)}
-                            className="h-11 w-full rounded-input border border-[#655D52]/40 bg-white px-3.5 text-sm text-[#181C1B] focus:outline-none focus:ring-2 focus:ring-primary"
+                            onClick={(e) => {
+                              try {
+                                e.currentTarget.showPicker?.()
+                              } catch {}
+                            }}
+                            className="h-11 w-full rounded-input border border-[#655D52]/40 bg-white px-3.5 text-sm text-[#181C1B] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                           />
                         </div>
                       </div>

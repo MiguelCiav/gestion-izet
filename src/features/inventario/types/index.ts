@@ -82,6 +82,20 @@ export interface ReactivoFormData {
 }
 
 /**
+ * Representa una ubicación física de laboratorio
+ */
+export interface UbicacionItem {
+  id: string
+  laboratorioId: string
+  laboratorioCodigo?: 'LEPA' | 'LEM'
+  nombre: string
+  descripcion?: string | null
+  activo: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
  * Opciones de filtrado y búsqueda de reactivos
  */
 export interface ReactivosFilterOptions {

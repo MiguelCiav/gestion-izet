@@ -202,6 +202,8 @@ export function DesktopInventarioDetallePage({
       <InputField
         id="detalle-reactivo-vencimiento"
         name="fechaVencimiento"
+        type="date"
+        variant="date"
         label="Fecha de vencimiento"
         value={formData.fechaVencimiento}
         onChange={(e) =>

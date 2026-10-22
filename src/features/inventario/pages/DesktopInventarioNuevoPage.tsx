@@ -17,8 +17,8 @@ import {
   type RomboValues,
 } from '@/components/ui'
 import { useAuth } from '@/features/auth/hooks'
-import { guardarReactivoEnSupabase } from '@/lib/izetService'
-import type { ReactivoFormData } from '../types'
+import { guardarReactivoEnSupabase, fetchUbicacionesLaboratorio } from '@/lib/izetService'
+import type { ReactivoFormData, UbicacionItem } from '../types'
 import { DesktopInventarioPage } from './DesktopInventarioPage'
 
 export interface DesktopInventarioNuevoPageProps {
@@ -80,6 +80,17 @@ export function DesktopInventarioNuevoPage({
 
   const [formData, setFormData] = React.useState<ReactivoFormData>(DEFAULT_NEW_FORM_DATA)
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false)
+  const [ubicaciones, setUbicaciones] = React.useState<UbicacionItem[]>([])
+
+  React.useEffect(() => {
+    let active = true
+    void fetchUbicacionesLaboratorio(activeLab).then((list) => {
+      if (active) setUbicaciones(list)
+    })
+    return () => {
+      active = false
+    }
+  }, [activeLab])
 
   const handleBack = () => {
     if (onClose) {
@@ -139,18 +150,6 @@ export function DesktopInventarioNuevoPage({
       />
 
       <InputField
-        id="nuevo-reactivo-clasificacion"
-        name="clasificacionRiesgo"
-        label="Clasificación de riesgo (opcional)"
-        placeholder="Ej. Corrosivo / Inflamable"
-        value={formData.clasificacionRiesgo || ''}
-        onChange={(e) =>
-          setFormData((prev) => ({ ...prev, clasificacionRiesgo: e.target.value }))
-        }
-        disabled={isSubmitting}
-      />
-
-      <InputField
         id="nuevo-reactivo-umbral"
         name="umbral"
         label="Umbral"
@@ -181,8 +180,9 @@ export function DesktopInventarioNuevoPage({
       <InputField
         id="nuevo-reactivo-vencimiento"
         name="fechaVencimiento"
+        type="date"
+        variant="date"
         label="Fecha de vencimiento"
-        placeholder="MM/AAAA (Ej. 12/2027)"
         value={formData.fechaVencimiento}
         onChange={(e) =>
           setFormData((prev) => ({
@@ -193,17 +193,37 @@ export function DesktopInventarioNuevoPage({
         disabled={isSubmitting}
       />
 
-      <InputField
-        id="nuevo-reactivo-ubicacion"
-        name="ubicacion"
-        label="Ubicación física (opcional)"
-        placeholder="Ej. Armario de Ácidos - Estante 2"
-        value={formData.ubicacion}
-        onChange={(e) =>
-          setFormData((prev) => ({ ...prev, ubicacion: e.target.value }))
-        }
-        disabled={isSubmitting}
-      />
+      <div>
+        <label
+          htmlFor="nuevo-reactivo-ubicacion"
+          className="block text-sm font-medium text-text-main mb-1.5"
+        >
+          Ubicación física (opcional)
+        </label>
+        <select
+          id="nuevo-reactivo-ubicacion"
+          name="ubicacion"
+          value={formData.ubicacion}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, ubicacion: e.target.value }))
+          }
+          disabled={isSubmitting}
+          className="h-11 w-full rounded-input border border-[#4A4E4A] bg-white px-3.5 py-2 text-sm text-text-main shadow-sm focus:outline-none focus:ring-2 focus:ring-primary hover:border-primary"
+        >
+          <option value="">Seleccione una ubicación...</option>
+          {ubicaciones.map((u) => (
+            <option key={u.id} value={u.nombre}>
+              {u.nombre}
+            </option>
+          ))}
+          {formData.ubicacion &&
+            !ubicaciones.some((u) => u.nombre === formData.ubicacion) && (
+              <option value={formData.ubicacion}>
+                {formData.ubicacion} (Personalizada)
+              </option>
+            )}
+        </select>
+      </div>
 
       <div className="pt-2">
         <RadioButton

@@ -468,7 +468,12 @@ export function DesktopPrestamosPage({
                 type="date"
                 value={fechaFiltro}
                 onChange={(e) => setFechaFiltro(e.target.value)}
-                className="h-8 rounded-lg border border-[#655D52]/30 bg-white px-2.5 text-xs text-text-main"
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker?.()
+                  } catch {}
+                }}
+                className="h-8 rounded-lg border border-[#655D52]/30 bg-white px-2.5 text-xs text-text-main cursor-pointer"
               />
               {fechaFiltro && (
                 <button

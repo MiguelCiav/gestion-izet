@@ -346,7 +346,12 @@ export const DesktopBitacoraPage: React.FC<DesktopBitacoraPageProps> = ({
                   type="date"
                   value={fechaDesde}
                   onChange={(e) => setFechaDesde(e.target.value)}
-                  className="h-9 rounded-lg border border-[#655D52]/30 px-2.5 text-xs"
+                  onClick={(e) => {
+                    try {
+                      e.currentTarget.showPicker?.()
+                    } catch {}
+                  }}
+                  className="h-9 rounded-lg border border-[#655D52]/30 px-2.5 text-xs cursor-pointer bg-white"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -358,7 +363,12 @@ export const DesktopBitacoraPage: React.FC<DesktopBitacoraPageProps> = ({
                   type="date"
                   value={fechaHasta}
                   onChange={(e) => setFechaHasta(e.target.value)}
-                  className="h-9 rounded-lg border border-[#655D52]/30 px-2.5 text-xs"
+                  onClick={(e) => {
+                    try {
+                      e.currentTarget.showPicker?.()
+                    } catch {}
+                  }}
+                  className="h-9 rounded-lg border border-[#655D52]/30 px-2.5 text-xs cursor-pointer bg-white"
                 />
               </div>
             </div>

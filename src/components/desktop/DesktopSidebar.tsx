@@ -70,6 +70,12 @@ export const DEFAULT_SIDEBAR_ITEMS: DesktopSidebarItem[] = [
     icon: ArrowsLeftRightIcon,
     href: '/prestamos',
   },
+  {
+    id: 'admin',
+    label: 'Administración',
+    icon: SettingsIcon,
+    href: '/admin',
+  },
 ]
 
 const USER_SIDEBAR_ITEMS: DesktopSidebarItem[] = [
@@ -144,8 +150,8 @@ export const DesktopSidebar = React.forwardRef<HTMLElement, DesktopSidebarProps>
       actionButton,
       onLogoutClick,
       onSettingsClick,
-      settingsHref = '/settings',
-      settingsLabel = 'Configuración',
+      settingsHref = '/admin',
+      settingsLabel = 'Administración',
       logoutLabel = 'Cerrar sesión',
       footerAction,
       footerContent,

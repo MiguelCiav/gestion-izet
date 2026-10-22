@@ -1,9 +1,12 @@
 import { supabase } from './supabase'
 import type { LabOption } from '@/features/auth/types'
-import type { ReactivoItem, ReactivoFormData, CaducidadEstado } from '@/features/inventario/types'
+import type { ReactivoItem, ReactivoFormData, CaducidadEstado, UbicacionItem } from '@/features/inventario/types'
 import type { DashboardAlert, ConsumoReciente, Reactivo } from '@/features/consumo/types'
 import type { DesktopBitacoraItem, BitacoraDateGroup, BitacoraEntry, BitacoraEntryType } from '@/features/bitacora/types'
 import type { PrestamoItem, PrestamoReactivo, PrestamoEstado, ModalidadPrestamo } from '@/features/prestamos/types'
+import type { AdminUsuarioItem, AdminUsuarioFormData } from '@/features/admin/types'
+
+export type LaboratorioCodigo = LabOption
 
 export const LABORATORIOS_INFO: Record<
   LabOption,
@@ -179,7 +182,6 @@ export async function fetchInventarioLaboratorio(lab: LabOption): Promise<Reacti
         codigo_unico,
         nombre,
         formula_quimica,
-        clasificacion_riesgo,
         nfpa_salud,
         nfpa_inflamabilidad,
         nfpa_inestabilidad,
@@ -223,7 +225,6 @@ export async function fetchInventarioLaboratorio(lab: LabOption): Promise<Reacti
       nombre: cat.nombre,
       codigo: cat.codigo_unico,
       formulaQuimica: cat.formula_quimica ?? '',
-      clasificacionRiesgo: cat.clasificacion_riesgo ?? 'Sustancia de Laboratorio',
       stock: stockNum,
       unidad: row.unidad_medida || 'ml',
       umbral: umbralNum,
@@ -285,7 +286,6 @@ export async function verificarDisponibilidadCodigo(
     codigo_unico: string
     nombre: string
     formula_quimica: string | null
-    clasificacion_riesgo: string
     es_uso_comun: boolean
     es_regulado: boolean
     entidades_regulatorias: string[]
@@ -303,7 +303,7 @@ export async function verificarDisponibilidadCodigo(
   const { data, error } = await supabase
     .from('catalogo_reactivos')
     .select(
-      'id, codigo_unico, nombre, formula_quimica, clasificacion_riesgo, es_uso_comun, es_regulado, entidades_regulatorias, ultimo_precio, moneda_precio, nfpa_salud, nfpa_inflamabilidad, nfpa_inestabilidad, nfpa_especial',
+      'id, codigo_unico, nombre, formula_quimica, es_uso_comun, es_regulado, entidades_regulatorias, ultimo_precio, moneda_precio, nfpa_salud, nfpa_inflamabilidad, nfpa_inestabilidad, nfpa_especial',
     )
     .ilike('codigo_unico', clean)
     .limit(1)
@@ -373,7 +373,6 @@ export async function guardarReactivoEnSupabase(
     p_codigo_unico: (formData.codigo || '').trim().toUpperCase(),
     p_nombre: formData.nombre.trim(),
     p_formula_quimica: formData.formulaQuimica?.trim() || 'N/A',
-    p_clasificacion_riesgo: formData.clasificacionRiesgo?.trim() || 'No especificada',
     p_nfpa_salud: Number(formData.rombo?.health ?? 0),
     p_nfpa_inflamabilidad: Number(formData.rombo?.flammability ?? 0),
     p_nfpa_inestabilidad: Number(formData.rombo?.reactivity ?? 0),
@@ -949,6 +948,234 @@ export async function registrarDevolucionPrestamoEnSupabase(params: {
     p_estado_cierre: params.estadoCierre || 'DEVUELTO',
     p_incidencia: params.incidencia,
     p_nombre_responsable: params.nombreResponsable,
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+// =========================================================================
+// GESTIÓN DE UBICACIONES FÍSICAS (ADMIN / INVENTARIO)
+// =========================================================================
+
+export async function fetchUbicacionesLaboratorio(
+  lab?: LabOption,
+): Promise<UbicacionItem[]> {
+  let query = supabase
+    .from('ubicaciones' as any)
+    .select('id, laboratorio_id, nombre, descripcion, activo, created_at, updated_at, laboratorios(codigo)')
+    .order('nombre', { ascending: true })
+
+  if (lab) {
+    const labId = getLabId(lab)
+    query = query.eq('laboratorio_id', labId)
+  }
+
+  const { data, error } = await query
+
+  if (error || !data) {
+    console.error('Error al cargar ubicaciones:', error)
+    return []
+  }
+
+  return (data as any[]).map((row) => ({
+    id: row.id,
+    laboratorioId: row.laboratorio_id,
+    laboratorioCodigo: row.laboratorios?.codigo as LabOption,
+    nombre: row.nombre,
+    descripcion: row.descripcion,
+    activo: Boolean(row.activo),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }))
+}
+
+export async function crearUbicacionLaboratorio(
+  lab: LabOption,
+  nombre: string,
+  descripcion?: string,
+): Promise<{ success: boolean; error?: string; id?: string }> {
+  const labId = getLabId(lab)
+  const cleanNombre = nombre.trim()
+  if (!cleanNombre) {
+    return { success: false, error: 'El nombre de la ubicación es obligatorio.' }
+  }
+
+  const { data, error } = await supabase
+    .from('ubicaciones' as any)
+    .insert({
+      laboratorio_id: labId,
+      nombre: cleanNombre,
+      descripcion: descripcion?.trim() || null,
+      activo: true,
+    })
+    .select('id')
+    .single()
+
+  if (error) {
+    if ((error as any).code === '23505') {
+      return { success: false, error: 'Ya existe una ubicación con ese nombre en este laboratorio.' }
+    }
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, id: (data as any)?.id }
+}
+
+export async function actualizarUbicacionLaboratorio(
+  id: string,
+  data: {
+    nombre?: string
+    descripcion?: string
+    activo?: boolean
+    laboratorioCodigo?: LabOption
+  },
+): Promise<{ success: boolean; error?: string }> {
+  const updatePayload: Record<string, any> = {
+    updated_at: new Date().toISOString(),
+  }
+
+  if (data.nombre !== undefined) {
+    const clean = data.nombre.trim()
+    if (!clean) return { success: false, error: 'El nombre no puede estar vacío.' }
+    updatePayload.nombre = clean
+  }
+  if (data.descripcion !== undefined) {
+    updatePayload.descripcion = data.descripcion?.trim() || null
+  }
+  if (data.activo !== undefined) {
+    updatePayload.activo = data.activo
+  }
+  if (data.laboratorioCodigo) {
+    updatePayload.laboratorio_id = getLabId(data.laboratorioCodigo)
+  }
+
+  const { error } = await supabase
+    .from('ubicaciones' as any)
+    .update(updatePayload)
+    .eq('id', id)
+
+  if (error) {
+    if ((error as any).code === '23505') {
+      return { success: false, error: 'Ya existe una ubicación con ese nombre en ese laboratorio.' }
+    }
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function eliminarUbicacionLaboratorio(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  const { data: ubic } = await supabase
+    .from('ubicaciones' as any)
+    .select('nombre, laboratorio_id')
+    .eq('id', id)
+    .single()
+
+  if (ubic) {
+    const { count } = await supabase
+      .from('stock_reactivos')
+      .select('id', { count: 'exact', head: true })
+      .eq('laboratorio_id', (ubic as any).laboratorio_id)
+      .eq('ubicacion_fisica', (ubic as any).nombre)
+
+    if (count && count > 0) {
+      return {
+        success: false,
+        error: `No se puede eliminar la ubicación "${(ubic as any).nombre}" porque hay ${count} reactivo(s) almacenados en ella. Reasigna los reactivos primero.`,
+      }
+    }
+  }
+
+  const { error } = await supabase
+    .from('ubicaciones' as any)
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+// =========================================================================
+// GESTIÓN DE USUARIOS (ADMIN CRUD)
+// =========================================================================
+
+export async function fetchUsuariosAdmin(): Promise<AdminUsuarioItem[]> {
+  const { data, error } = await (supabase.rpc as any)('admin_listar_usuarios')
+
+  if (error || !data) {
+    console.error('Error al listar usuarios admin:', error)
+    return []
+  }
+
+  return (data as any[]).map((row) => ({
+    id: row.id,
+    email: row.email,
+    nombreCompleto: row.nombre_completo,
+    cedula: row.cedula || 'S/C',
+    contacto: row.contacto,
+    rol: row.rol || 'investigador',
+    laboratorioId: row.laboratorio_id,
+    laboratorioCodigo: (row.laboratorio_codigo || 'LEPA') as LabOption,
+    createdAt: row.created_at,
+  }))
+}
+
+export async function crearUsuarioAdmin(
+  formData: AdminUsuarioFormData,
+): Promise<{ success: boolean; error?: string; id?: string }> {
+  const { data, error } = await (supabase.rpc as any)('admin_crear_usuario', {
+    p_email: formData.email.trim(),
+    p_password: formData.password || '',
+    p_nombre_completo: formData.nombreCompleto.trim(),
+    p_cedula: formData.cedula.trim(),
+    p_contacto: formData.contacto?.trim() || '',
+    p_rol: formData.rol,
+    p_laboratorio_codigo: formData.laboratorioCodigo,
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  const res = data as { success?: boolean; id?: string } | null
+  return { success: true, id: res?.id }
+}
+
+export async function actualizarUsuarioAdmin(
+  userId: string,
+  formData: Partial<AdminUsuarioFormData>,
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await (supabase.rpc as any)('admin_actualizar_usuario', {
+    p_user_id: userId,
+    p_nombre_completo: formData.nombreCompleto?.trim() || '',
+    p_cedula: formData.cedula?.trim() || '',
+    p_contacto: formData.contacto?.trim() || '',
+    p_rol: formData.rol || 'investigador',
+    p_laboratorio_codigo: formData.laboratorioCodigo || 'LEPA',
+    p_password: formData.password?.trim() || undefined,
+  })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function eliminarUsuarioAdmin(
+  userId: string,
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await (supabase.rpc as any)('admin_eliminar_usuario', {
+    p_user_id: userId,
   })
 
   if (error) {

@@ -348,7 +348,12 @@ export function PrestamosDetallePage() {
                 type="date"
                 value={fechaEstimada}
                 onChange={(e) => setFechaEstimada(e.target.value)}
-                className="h-10 w-full rounded-input border border-border bg-[#FAF6F0] px-3 text-xs text-text-main"
+                onClick={(e) => {
+                  try {
+                    e.currentTarget.showPicker?.()
+                  } catch {}
+                }}
+                className="h-10 w-full rounded-input border border-border bg-[#FAF6F0] px-3 text-xs text-text-main cursor-pointer"
               />
             </div>
           </div>

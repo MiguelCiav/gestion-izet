@@ -20,9 +20,7 @@ export const DesktopTopbar = React.forwardRef<HTMLElement, DesktopTopbarProps>(
     const isAdmin = user?.rol === 'admin'
 
     const displayName = user?.username || 'Personal de Laboratorio'
-    const displaySubtitle = isAdmin
-      ? `Administrador${user?.cedula ? ` • ${user.cedula}` : ''}`
-      : `Laboratorio ${activeLab}${user?.cedula ? ` • ${user.cedula}` : ''}`
+    const displaySubtitle = user?.cedula || ''
 
     const handleLogout = async () => {
       await logout()

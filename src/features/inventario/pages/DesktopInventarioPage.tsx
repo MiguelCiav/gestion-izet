@@ -676,7 +676,6 @@ export function DesktopInventarioPage({
                   nombre: selectedReactivo.nombre,
                   codigo: selectedReactivo.codigo,
                   formulaQuimica: selectedReactivo.formulaQuimica || 'N/A',
-                  clasificacionRiesgo: selectedReactivo.clasificacionRiesgo || 'Sustancia de Laboratorio',
                   umbral: selectedReactivo.umbral !== undefined ? String(selectedReactivo.umbral) : '50',
                   stockDisponible: String(selectedReactivo.stock),
                   unidadMedida: selectedReactivo.unidad || 'ml',
