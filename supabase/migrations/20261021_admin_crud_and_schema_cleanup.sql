@@ -386,6 +386,12 @@ BEGIN
     email_confirmed_at,
     raw_app_meta_data,
     raw_user_meta_data,
+    confirmation_token,
+    recovery_token,
+    email_change_token_new,
+    email_change_token_current,
+    email_change,
+    reauthentication_token,
     created_at,
     updated_at
   ) VALUES (
@@ -404,6 +410,12 @@ BEGIN
       'rol', v_clean_rol,
       'laboratorio_codigo', UPPER(trim(p_laboratorio_codigo))
     ),
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
     timezone('utc'::text, now()),
     timezone('utc'::text, now())
   );
